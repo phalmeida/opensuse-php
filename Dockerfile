@@ -8,8 +8,13 @@ RUN zypper --non-interactive --no-gpg-checks ref; \
 # instalando o Apache2
 RUN zypper ref && zypper --non-interactive in apache2
 
+# Instalação do Vim
 RUN zypper --non-interactive in vim
 
+# Instalação do Git
+RUN zypper --non-interactive in git
+
+# Instalação do Wget
 RUN zypper --non-interactive in wget
 
 # instalando o PHP 7 e os módulos necessários
@@ -59,6 +64,9 @@ RUN zypper --non-interactive in php7 \
     
 # instalando o módulo php7-devel para realizar a compilação das extensões
 RUN zypper --non-interactive in php7-devel gcc make
+
+# Instalação do Composer
+RUN zypper --non-interactive in php-composer
 
 # execute separadamente as configurações abaixo habilitando os módulos php7 e rewrite no apache2
 RUN a2enmod php7
