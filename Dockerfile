@@ -114,30 +114,37 @@ RUN echo extension=pdo_oci.so > /etc/php7/conf.d/pdo_oci.ini
 RUN cd /root/src/php-7.0.7/ext/oci8 && phpize && ./configure --with-oci8=shared,instantclient,/usr/lib/oracle/12.1/client64/lib && make && make install
 RUN echo extension=oci8.so > /etc/php7/conf.d/oci8.ini
 
-#Crie uma nova pasta para armazenar o Driver IBM no servidor.
+# Crie uma nova pasta para armazenar o Driver IBM no servidor.
 RUN mkdir /opt/ibm
 
+# Copia os arquivos para instalação e configuração do Driver DB2
 COPY ./InstantClientOracle/ibm_data_server_driver_package_linuxx64_v11.1.tar.gz /opt/ibm/ibm_data_server_driver_package_linuxx64_v11.1.tar.gz
 
+# Descompacta o arquivo IBM Data Server Driver Package.
 RUN tar xfvz /opt/ibm/ibm_data_server_driver_package_linuxx64_v11.1.tar.gz -C /opt/ibm/
 
+# Acesse a pasta dsdriver e iniciar a instalação do IBM Data Server Driver Package
 RUN cd /opt/ibm/dsdriver && ksh installDSDriver
 
-RUN echo export IBM_DB_HOME="/opt/ibm/dsdriver" >> /etc/sysconfig/apache2
+#Criar as variáveis de ambiente.
+RUN echo export IBM_DB_HOME="/opt/ibm/dsdriver" >> /etc/profile.local
+ENV IBM_DB_HOME "/opt/ibm/dsdriver"
 
-RUN export IBM_DB_HOME=/opt/ibm/dsdriver
-
+# Copia os arquivos para instalação e configuração da extensão ibm_db2
 COPY ./InstantClientOracle/ibm_db2-2.0.0.tgz /opt/ibm/ibm_db2-2.0.0.tgz
 
+# Descompacta o arquivo
 RUN tar xfvz /opt/ibm/ibm_db2-2.0.0.tgz -C /opt/ibm/
 
+# Instalação e configuração da extensão ibm_db2
 RUN cd /opt/ibm/ibm_db2-2.0.0 && phpize --clean && phpize && ./configure && make && make install
-
 RUN echo extension=ibm_db2.so > /etc/php7/conf.d/ibm_db2.ini
 
 COPY ./web/* /srv/www/htdocs
 
 RUN /usr/sbin/a2enmod php7
+
+RUN env
 
 CMD /usr/sbin/apache2ctl -D FOREGROUND
 VOLUME "/srv/www/htdocs"
