@@ -8,6 +8,15 @@ RUN zypper --non-interactive --no-gpg-checks ref; \
 # instalando o Apache2
 RUN zypper ref && zypper --non-interactive in apache2
 
+# Instalação do Gzip
+RUN zypper --non-interactive in gzip
+
+# Instalação do Unzip
+RUN zypper --non-interactive in unzip
+
+# Instalação do Ksh
+RUN zypper --non-interactive in ksh
+
 # Instalação do Vim
 RUN zypper --non-interactive in vim
 
@@ -104,6 +113,27 @@ RUN echo extension=pdo_oci.so > /etc/php7/conf.d/pdo_oci.ini
 # Compilando a extensão: OCI8
 RUN cd /root/src/php-7.0.7/ext/oci8 && phpize && ./configure --with-oci8=shared,instantclient,/usr/lib/oracle/12.1/client64/lib && make && make install
 RUN echo extension=oci8.so > /etc/php7/conf.d/oci8.ini
+
+#Crie uma nova pasta para armazenar o Driver IBM no servidor.
+RUN mkdir /opt/ibm
+
+COPY ./InstantClientOracle/ibm_data_server_driver_package_linuxx64_v11.1.tar.gz /opt/ibm/ibm_data_server_driver_package_linuxx64_v11.1.tar.gz
+
+RUN tar xfvz /opt/ibm/ibm_data_server_driver_package_linuxx64_v11.1.tar.gz -C /opt/ibm/
+
+RUN cd /opt/ibm/dsdriver && ksh installDSDriver
+
+RUN echo export IBM_DB_HOME="/opt/ibm/dsdriver" >> /etc/sysconfig/apache2
+
+RUN export IBM_DB_HOME=/opt/ibm/dsdriver
+
+COPY ./InstantClientOracle/ibm_db2-2.0.0.tgz /opt/ibm/ibm_db2-2.0.0.tgz
+
+RUN tar xfvz /opt/ibm/ibm_db2-2.0.0.tgz -C /opt/ibm/
+
+RUN cd /opt/ibm/ibm_db2-2.0.0 && phpize --clean && phpize && ./configure && make && make install
+
+RUN echo extension=ibm_db2.so > /etc/php7/conf.d/ibm_db2.ini
 
 COPY ./web/* /srv/www/htdocs
 
