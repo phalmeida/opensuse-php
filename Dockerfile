@@ -26,6 +26,12 @@ RUN zypper --non-interactive in git
 # Instalação do Wget
 RUN zypper --non-interactive in wget
 
+# Instalação do unixODBC
+RUN zypper --non-interactive in unixODBC
+
+# Instalação do unixODBC-devel
+RUN zypper --non-interactive in unixODBC-devel
+
 # instalando o PHP 7 e os módulos necessários
 RUN zypper --non-interactive in php7 \
     php7-pear \
@@ -129,6 +135,8 @@ RUN cd /opt/ibm/dsdriver && ksh installDSDriver
 #Criar as variáveis de ambiente.
 RUN echo export IBM_DB_HOME="/opt/ibm/dsdriver" >> /etc/profile.local
 ENV IBM_DB_HOME "/opt/ibm/dsdriver"
+ENV LD_LIBRARY_PATH "/opt/ibm/dsdriver/lib"
+RUN ln -s /opt/ibm/dsdriver/include /include
 
 # Copia os arquivos para instalação e configuração da extensão ibm_db2
 COPY ./InstantClientOracle/ibm_db2-2.0.0.tgz /opt/ibm/ibm_db2-2.0.0.tgz
@@ -140,11 +148,19 @@ RUN tar xfvz /opt/ibm/ibm_db2-2.0.0.tgz -C /opt/ibm/
 RUN cd /opt/ibm/ibm_db2-2.0.0 && phpize --clean && phpize && ./configure && make && make install
 RUN echo extension=ibm_db2.so > /etc/php7/conf.d/ibm_db2.ini
 
+#Instalação e configuração da extensão PDO_IBM
+RUN cd /opt/ibm && git clone https://github.com/dreamfactorysoftware/PDO_IBM-1.3.4-patched.git && cd PDO_IBM-1.3.4-patched/ && phpize 
+RUN cd /opt/ibm/PDO_IBM-1.3.4-patched/ && ./configure --with-pdo-ibm=/opt/ibm/dsdriver/lib && make && make install
+RUN cd /opt/ibm/PDO_IBM-1.3.4-patched/ && make && make install
+RUN echo extension=pdo_ibm.so > /etc/php7/conf.d/pdo_ibm.ini
+
+# Compilando a extensão: PDO_ODBC
+RUN cd /root/src/php-7.0.7/ext/pdo_odbc && phpize && ./configure --with-pdo-odbc=unixODBC,/usr/ && make && make install
+RUN echo extension=pdo_odbc.so > /etc/php7/conf.d/pdo_odbc.ini
+
 COPY ./web/* /srv/www/htdocs
 
 RUN /usr/sbin/a2enmod php7
-
-RUN env
 
 CMD /usr/sbin/apache2ctl -D FOREGROUND
 VOLUME "/srv/www/htdocs"
