@@ -158,6 +158,10 @@ RUN echo extension=pdo_ibm.so > /etc/php7/conf.d/pdo_ibm.ini
 RUN cd /root/src/php-7.0.7/ext/pdo_odbc && phpize && ./configure --with-pdo-odbc=unixODBC,/usr/ && make && make install
 RUN echo extension=pdo_odbc.so > /etc/php7/conf.d/pdo_odbc.ini
 
+# Apaga os arquivos utilizados
+RUN rm -Rf /root/src/*
+RUN rm -f /opt/ibm/ibm_data_server_driver_package_linuxx64_v11.1.tar.gz
+
 COPY ./web/* /srv/www/htdocs
 
 RUN /usr/sbin/a2enmod php7
