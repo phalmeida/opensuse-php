@@ -1,4 +1,4 @@
-FROM opensuse
+FROM opensuse:leap
 
 MAINTAINER Philipe Allan Almeida <philipeph3@gmail.com>
 
@@ -106,6 +106,8 @@ RUN rpm -Uvh  /root/src/oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 # Criação das variáveis de ambiente do apache
 RUN echo export ORACLE_HOME="/usr/lib/oracle/12.1/client64" >> /etc/sysconfig/apache2
 RUN echo export LD_LIBRARY_PATH="/usr/lib/oracle/12.1/client64/lib" >> /etc/sysconfig/apache2
+ENV ORACLE_HOME "/usr/lib/oracle/12.1/client64"
+ENV LD_LIBRARY_PATH "/usr/lib/oracle/12.1/client64/lib"
 
 # Obtendo o source do PHP (7.0.7)
 RUN cd /root/src
@@ -135,7 +137,7 @@ RUN cd /opt/ibm/dsdriver && ksh installDSDriver
 #Criar as variáveis de ambiente.
 RUN echo export IBM_DB_HOME="/opt/ibm/dsdriver" >> /etc/profile.local
 ENV IBM_DB_HOME "/opt/ibm/dsdriver"
-ENV LD_LIBRARY_PATH "/opt/ibm/dsdriver/lib"
+ENV LD_LIBRARY_PATH "/opt/ibm/dsdriver/lib;/usr/lib/oracle/12.1/client64/lib"
 RUN ln -s /opt/ibm/dsdriver/include /include
 
 # Copia os arquivos para instalação e configuração da extensão ibm_db2
@@ -166,6 +168,7 @@ COPY ./web/* /srv/www/htdocs
 
 RUN /usr/sbin/a2enmod php7
 
-CMD /usr/sbin/apache2ctl -D FOREGROUND
 VOLUME "/srv/www/htdocs"
 EXPOSE 80
+
+CMD /usr/sbin/apache2ctl -D FOREGROUND
