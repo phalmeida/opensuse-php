@@ -160,6 +160,14 @@ RUN echo extension=pdo_ibm.so > /etc/php7/conf.d/pdo_ibm.ini
 RUN cd /root/src/php-7.0.7/ext/pdo_odbc && phpize && ./configure --with-pdo-odbc=unixODBC,/usr/ && make && make install
 RUN echo extension=pdo_odbc.so > /etc/php7/conf.d/pdo_odbc.ini
 
+
+# Configuração do Xdebug
+RUN pecl install xdebug
+RUN echo zend_extension=/usr/lib64/php7/extensions/xdebug.so >> etc/php7/apache2/php.ini
+RUN echo [XDebug] >> etc/php7/apache2/php.ini
+RUN echo xdebug.remote_enable = 1 >> etc/php7/apache2/php.ini
+RUN echo xdebug.remote_autostart = 1 >> etc/php7/apache2/php.ini
+
 # Apaga os arquivos utilizados
 RUN rm -Rf /root/src/*
 RUN rm -f /opt/ibm/ibm_data_server_driver_package_linuxx64_v11.1.tar.gz
